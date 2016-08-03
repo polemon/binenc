@@ -96,14 +96,32 @@ def b85dec_pad(encoding, e_block):
         block = block[:-pad]
         return block
 
+def b85enc_getblk(fh):
+    blk = b''
+    barr = bytearray()
+
+    byte = sys.stdin.buffer.read(1)
+    while byte != b'':
+        pprint.pprint(byte)
+        byte = sys.stdin.buffer.read(1)
+
+    return blk
+
 def main():
     sys.argv.pop(0) # get rid of script name
+
+    pprint.pprint(sys.argv[0])
 
     try:
         sw, arg = getopt.getopt(sys.argv, 'hdvw:s:', ['help', 'decode', 'version', 'wrap=', 'string=', 'ascii85', 'z85', 'base85'])
     except getopt.GetoptError as e:
         print("ERROR:", e)
         exit(1)
+
+    byte = sys.stdin.buffer.read(1)
+    while byte != b'':
+        pprint.pprint(byte)
+        byte = sys.stdin.buffer.read(1)
 
 
 #    pprint.pprint(sys.argv)
@@ -118,9 +136,9 @@ def main():
 #    print("re-decoded:")
 #    pprint.pprint(b85dec_pad('base85', encoded))
 
-    print(hlp)
-    pprint.pprint(sw)
-    pprint.pprint(arg)
+    #print(hlp)
+    #pprint.pprint(sw)
+    #pprint.pprint(arg)
 
     pass
 
