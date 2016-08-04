@@ -96,6 +96,7 @@ def b85dec_pad(encoding, e_block):
         block = block[:-pad]
         return block
 
+# get binary block of 4 bytes from stream source
 def b85enc_getbinblk(fh):
     barr = bytearray()
 
@@ -105,9 +106,9 @@ def b85enc_getbinblk(fh):
         byte = fh.read(1)
 
     barr += byte
-
     return bytes(barr)
 
+# encode stream, print to output stream
 def b85enc(fh_in, fh_out, encoding):
     blk = b85enc_getbinblk(fh_in)
     s = b85enc_pad(encoding, blk)
