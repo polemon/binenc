@@ -96,21 +96,34 @@ def b85dec_pad(encoding, e_block):
         block = block[:-pad]
         return block
 
-def b85enc_getblk(fh):
-    blk = b''
+def b85enc_getbinblk(fh):
     barr = bytearray()
 
-    byte = sys.stdin.buffer.read(1)
-    while byte != b'':
-        pprint.pprint(byte)
-        byte = sys.stdin.buffer.read(1)
+    byte = fh.read(1)
+    while byte != b'' and len(barr) < 3:
+        barr += byte
+        byte = fh.read(1)
 
-    return blk
+    barr += byte
+
+    return bytes(barr)
+
+def b85enc(fh_in, fh_out, encoding):
+    blk = b85enc_getbinblk(fh_in)
+    s = b85enc_pad(encoding, blk)
+    while len(blk) != 0:
+        # pprint.pprint(blk)
+        print(s, end='')
+        blk = b85enc_getbinblk(fh_in)
+        s = b85enc_pad(encoding, blk)
+
+        
+    pass
 
 def main():
     sys.argv.pop(0) # get rid of script name
 
-    pprint.pprint(sys.argv[0])
+    #pprint.pprint(sys.argv[0])
 
     try:
         sw, arg = getopt.getopt(sys.argv, 'hdvw:s:', ['help', 'decode', 'version', 'wrap=', 'string=', 'ascii85', 'z85', 'base85'])
@@ -118,11 +131,12 @@ def main():
         print("ERROR:", e)
         exit(1)
 
-    byte = sys.stdin.buffer.read(1)
-    while byte != b'':
-        pprint.pprint(byte)
-        byte = sys.stdin.buffer.read(1)
+    #byte = sys.stdin.buffer.read(1)
+    #while byte != b'':
+    #    pprint.pprint(byte)
+    #    byte = sys.stdin.buffer.read(1)
 
+    b85enc(sys.stdin.buffer, sys.stdout.buffer, 'ascii85')
 
 #    pprint.pprint(sys.argv)
 #    pprint.pprint(len(sys.argv[0]))
