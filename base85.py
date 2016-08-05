@@ -5,13 +5,17 @@ import getopt
 import pprint
 
 base85 = { 
-    'ascii85' : { 'prefix' : "<~", 'suffix' : "~>", # Adobe version of 'btoa'
+    'ascii85' : { 'prefix' : "<~", 'suffix' : "~>", 'zeroblock' : 'z', # Adobe version of 'btoa'
                   'alphabet' : '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstu' },
-    'base85'  : { 'prefix' : "", 'suffix' : "", # RFC 1924 (1996-04-01)
+    'base85'  : { 'prefix' : "", 'suffix' : "", 'zeroblock' : False, # RFC 1924 (1996-04-01)
                   'alphabet' : '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqestuvwxyz!#$%&()*+-;<=>?@^_`{|}~' },
-    'z85'     : { 'prefix' : "", 'suffix' : "", # ZeroMQ
+    'z85'     : { 'prefix' : "", 'suffix' : "", 'zeroblock' : False, # ZeroMQ
                   'alphabet' : '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#' }
 }
+
+# default values
+wrap = 76
+alph = 'ascii85'
 
 hlp = """base85 -- encode / decode data and print to standard output
 
@@ -112,12 +116,20 @@ def b85enc_getbinblk(fh):
 def b85enc(fh_in, fh_out, encoding):
     blk = b85enc_getbinblk(fh_in)
     s = b85enc_pad(encoding, blk)
+    linlen = len(s)
+
     while len(blk) != 0:
-        # pprint.pprint(blk)
-        print(s, end='')
+        if linlen >= wrap:
+            fh_out.write(b'\n')
+            linlen = len(s)
+
+        #pprint.pprint(linlen)
+        
+        fh_out.write(s.encode())
+        fh_out.flush()
         blk = b85enc_getbinblk(fh_in)
         s = b85enc_pad(encoding, blk)
-
+        linlen += len(s)
         
     pass
 
