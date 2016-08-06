@@ -119,11 +119,28 @@ def b85enc(fh_in, fh_out, encoding):
     linlen = len(s)
 
     while len(blk) != 0:
-        if linlen >= wrap:
+        fh_out.write(b'|')
+        if linlen > wrap:
+            #if wrap % (linlen -5):
+                #pprint.pprint(linlen)
+                #pprint.pprint(wrap)
+            part = wrap % (linlen -5)
+                #fh_out.write(("-part%d-" % part).encode())
+                #pprint.pprint(linlen -5)
+                #print()
+                #pprint.pprint(s[:part] + '\n' + s[part:])
+            fh_out.write(s[:part].encode())
             fh_out.write(b'\n')
-            linlen = len(s)
 
-        #pprint.pprint(linlen)
+            s = s[part:]
+                #fh_out.write('``'.encode())
+            linlen = len(s)
+            #else:
+                #fh_out.write(b'\n')
+            
+            #    linlen = len(s)
+                #pass
+
         
         fh_out.write(s.encode())
         fh_out.flush()
@@ -131,18 +148,25 @@ def b85enc(fh_in, fh_out, encoding):
         s = b85enc_pad(encoding, blk)
         linlen += len(s)
         
-    pass
 
 def main():
     sys.argv.pop(0) # get rid of script name
 
     #pprint.pprint(sys.argv[0])
+    global wrap
 
     try:
         sw, arg = getopt.getopt(sys.argv, 'hdvw:s:', ['help', 'decode', 'version', 'wrap=', 'string=', 'ascii85', 'z85', 'base85'])
     except getopt.GetoptError as e:
         print("ERROR:", e)
         exit(1)
+
+    for s, o in sw:
+        if s in  ('-w', '--wrap'):
+            wrap = int(o)
+
+
+    pprint.pprint(sw)
 
     #byte = sys.stdin.buffer.read(1)
     #while byte != b'':
