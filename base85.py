@@ -4,6 +4,7 @@ import sys
 import getopt
 import pprint
 
+# encoding alphabets
 base85 = { 
     'ascii85' : { 'prefix' : "<~", 'suffix' : "~>", 'zeroblock' : 'z', # Adobe version of 'btoa'
                   'alphabet' : '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstu' },
@@ -13,10 +14,7 @@ base85 = {
                   'alphabet' : '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#' }
 }
 
-# default values
-wrap = 76
-alph = 'ascii85'
-
+# globals
 ver = "base85.py v0.01 (c) Szymon 'polemon' Bereziak"
 hlp = """base85 -- encode / decode data and print to standard output
 
@@ -118,13 +116,14 @@ def b85enc_getbinblk(fh):
 
 # encode stream, print to output stream
 # also, honor word wrapping
-def b85enc(fh_in, fh_out, encoding):
+# note default values
+def b85enc(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'ascii85', wrap = 76):
     blk = b85enc_getbinblk(fh_in)
     s = b85enc_pad(encoding, blk)
     linlen = len(s)
 
     while len(blk) != 0:    # empty block received at EOF
-        while linlen > wrap:    # very smart verion of an if-then-else ;)
+        while linlen > wrap and wrap != 0:    # very smart version of an if-then-else ;)
             part = wrap - (linlen -len(s))
 
             fh_out.write(s[:part].encode())
@@ -135,6 +134,7 @@ def b85enc(fh_in, fh_out, encoding):
 
             # word wrapping like this also works with blocks larger than a single line:
             # line length = 4 and block size = 5
+            # wrap == 0 is no wrapping
  
         fh_out.write(s.encode())
         fh_out.flush()
@@ -142,11 +142,22 @@ def b85enc(fh_in, fh_out, encoding):
         s = b85enc_pad(encoding, blk)
         linlen += len(s)
 
+def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', wrap = 76):
+    pprint.pprint(binstr) 
+    pass
+
 def main():
     sys.argv.pop(0) # get rid of script name
 
+    fh_in = sys.stdin.buffer
+    fh_out = sys.stdout.buffer
+    encoding = 'ascii85'
+    wrap = 76
+
+    binstr = b''
+    decode = False
+
     #pprint.pprint(sys.argv[0])
-    global wrap
 
     try:
         sw, arg = getopt.getopt(sys.argv, 'hdvw:s:', ['help', 'decode', 'version', 'wrap=', 'string=', 'ascii85', 'z85', 'base85'])
@@ -154,17 +165,23 @@ def main():
         print("ERROR:", e)
         exit(1)
 
+    # parse switch settings
     for s, o in sw:
         if s in  ('-w', '--wrap'):
             wrap = int(o)
+            if wrap < 0:
+                print("ERROR: word wrapping column number must be positive or 0!", file = sys.stderr)
+                exit(1)
+        elif s in ('-s', '--string'):   # treat things in that paramter as bytes at all times
+            binstr = o.encode(sys.getfilesystemencoding(), 'surrogateescape')
         elif s in ('--ascii85'):
-            alph = 'ascii85'
+            encoding = 'ascii85'
         elif s in ('--base85'):
-            alph = 'base85'
+            encoding = 'base85'
         elif s in ('--z85'):
-            alph = 'z85'
+            encoding = 'z85'
         elif s in ('-d','--decode'):
-            pass
+            decode = True
         elif s in ('-v', '--version'):
             print(ver)
             exit(0)
@@ -172,17 +189,25 @@ def main():
             print(hlp)
             exit(0)
         else:
+            print("ERROR: something FUBAR with the switches, I'll show you later...", file = sys.stderr)
             exit(1)
 
+    
+    if binstr:
+        b85enc_str(binstr = binstr, fh_out = fh_out, encoding = encoding, wrap = wrap)
+    else:
+        b85enc(fh_in = fh_in, fh_out = fh_out, encoding = encoding, wrap = wrap)
 
-    pprint.pprint(sw)
+    #pprint.pprint(sw)
 
     #byte = sys.stdin.buffer.read(1)
     #while byte != b'':
     #    pprint.pprint(byte)
     #    byte = sys.stdin.buffer.read(1)
 
-    b85enc(sys.stdin.buffer, sys.stdout.buffer, 'ascii85')
+    #b85enc()
+
+
 
 #    pprint.pprint(sys.argv)
 #    pprint.pprint(len(sys.argv[0]))
