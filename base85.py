@@ -120,7 +120,7 @@ def b85enc(fh_in, fh_out, encoding):
     linlen = len(s)
 
     while len(blk) != 0:
-        if linlen > wrap:
+        while linlen > wrap:
             part = wrap - (linlen -len(s))
 
             fh_out.write(s[:part].encode())
@@ -128,7 +128,10 @@ def b85enc(fh_in, fh_out, encoding):
 
             s = s[part:]
             linlen = len(s)
-        
+
+            # word wrapping like this also works with blocks larger than a single line:
+            # line length = 4 and block size = 5
+ 
         fh_out.write(s.encode())
         fh_out.flush()
         blk = b85enc_getbinblk(fh_in)
