@@ -34,7 +34,7 @@ I'm doing this primarily as an exercise, to optimize for various encoding bandwi
 Convert binary data to an alphabet of eighty five characters.
 
 Every four bytes get encoded into five characters.
-Data is not bit-aligned and is hence takes as 32 bit numbers (big endian) and encoded into a five characters long string, by repeatedly dividing by 85 and taking their reminders.
+Data is not bit-aligned and is hence taken as 32 bit numbers (big endian) and encoded into a five characters long string, by repeatedly dividing by 85 and taking their reminders, respectively.
 
 This version supports three different alphabets.
 

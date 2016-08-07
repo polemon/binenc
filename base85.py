@@ -113,41 +113,27 @@ def b85enc_getbinblk(fh):
     return bytes(barr)
 
 # encode stream, print to output stream
+# also, honor word wrapping
 def b85enc(fh_in, fh_out, encoding):
     blk = b85enc_getbinblk(fh_in)
     s = b85enc_pad(encoding, blk)
     linlen = len(s)
 
     while len(blk) != 0:
-        fh_out.write(b'|')
         if linlen > wrap:
-            #if wrap % (linlen -5):
-                #pprint.pprint(linlen)
-                #pprint.pprint(wrap)
-            part = wrap % (linlen -5)
-                #fh_out.write(("-part%d-" % part).encode())
-                #pprint.pprint(linlen -5)
-                #print()
-                #pprint.pprint(s[:part] + '\n' + s[part:])
+            part = wrap - (linlen -len(s))
+
             fh_out.write(s[:part].encode())
             fh_out.write(b'\n')
 
             s = s[part:]
-                #fh_out.write('``'.encode())
             linlen = len(s)
-            #else:
-                #fh_out.write(b'\n')
-            
-            #    linlen = len(s)
-                #pass
-
         
         fh_out.write(s.encode())
         fh_out.flush()
         blk = b85enc_getbinblk(fh_in)
         s = b85enc_pad(encoding, blk)
         linlen += len(s)
-        
 
 def main():
     sys.argv.pop(0) # get rid of script name
