@@ -17,6 +17,7 @@ base85 = {
 wrap = 76
 alph = 'ascii85'
 
+ver = "base85.py v0.01 (c) Szymon 'polemon' Bereziak"
 hlp = """base85 -- encode / decode data and print to standard output
 
     Usage:  base85 [SWITCHES] [FILE]
@@ -25,6 +26,9 @@ hlp = """base85 -- encode / decode data and print to standard output
         If FILE is '-' or omitted, base85 reads from STDIN
         otherwise it'll encode the contents of FILE and print to
         STDOUT
+
+        If FILE are two file names, output will be printed to the
+        second file, rather than STDOUT
 
     SWITCHES:
       (general)
@@ -38,7 +42,7 @@ hlp = """base85 -- encode / decode data and print to standard output
       (alphabet selection)
             --ascii85       use Adobe ascii85 alphabet
             --z85           use ZeroMQ alphabet
-            --base85        use RFC 1924 (used for IPv6 adresses) alphabet (default)
+            --base85        use RFC 1924 (IPv6 adresses) alphabet (default)
 
     Author:      Szymon 'polemon' Bereziak <polemon@gmail.com>
     License:     ISC
@@ -119,8 +123,8 @@ def b85enc(fh_in, fh_out, encoding):
     s = b85enc_pad(encoding, blk)
     linlen = len(s)
 
-    while len(blk) != 0:
-        while linlen > wrap:
+    while len(blk) != 0:    # empty block received at EOF
+        while linlen > wrap:    # very smart verion of an if-then-else ;)
             part = wrap - (linlen -len(s))
 
             fh_out.write(s[:part].encode())
@@ -153,6 +157,22 @@ def main():
     for s, o in sw:
         if s in  ('-w', '--wrap'):
             wrap = int(o)
+        elif s in ('--ascii85'):
+            alph = 'ascii85'
+        elif s in ('--base85'):
+            alph = 'base85'
+        elif s in ('--z85'):
+            alph = 'z85'
+        elif s in ('-d','--decode'):
+            pass
+        elif s in ('-v', '--version'):
+            print(ver)
+            exit(0)
+        elif s in ('-h', '--help'):
+            print(hlp)
+            exit(0)
+        else:
+            exit(1)
 
 
     pprint.pprint(sw)

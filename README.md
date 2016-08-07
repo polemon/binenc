@@ -44,7 +44,7 @@ These encoders are designed to be compatible to the feature-set of [`uuencode`][
 As with `uuencode` and `uudecode` there exist two version of each, one for encoding and one for decoding.
 
 ### `xxencode.py` / `xxdecode.py`
-Encode files into [XX encoding][4], which is similar, but not equal to UUencode.
+Encode files into [XXencoding][4], which is similar, but not equal to UUencode.
 
  [1]: http://linuxcommand.org/man_pages/xxd1.html
  [2]: https://enwp.org/Hex_dump
