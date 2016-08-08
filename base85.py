@@ -157,16 +157,14 @@ def b85enc(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'asc
         blk = b85enc_getbinblk(fh_in)
         s = b85enc_pad(encoding, blk)
         linlen += len(s)
-        fh_out.write(b'|' + str(linlen).encode() + b'|' + str(wrap).encode() + b'|')
 
-    #linlen += len(base85[encoding]['suffix'])
-    fh_out.write(b'|' + str(linlen).encode() + b'|' + str(wrap).encode() + b'|')
-    #b85enc_print(fh_out, linlen, wrap, base85[encoding]['suffix'])
+    linlen += len(base85[encoding]['suffix']) -1    # the one overhang is an empy bye from EOF
+    b85enc_print(fh_out, linlen, wrap, base85[encoding]['suffix'])
 
 # handle string from cli as input and print result to output stream
 def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', wrap = 76):
     idx = 0
-    linlen = 0
+    linlen = b85enc_print(fh_out, len(base85[encoding]['prefix']), wrap, base85[encoding]['prefix'])
 
     while idx < len(binstr):
         blk = binstr[idx:idx+4]
@@ -176,6 +174,9 @@ def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', w
         linlen = b85enc_print(fh_out, linlen, wrap, s)
 
         idx += 4
+    
+    linlen += len(base85[encoding]['suffix'])    # the one overhang is an empy bye from EOF
+    b85enc_print(fh_out, linlen, wrap, base85[encoding]['suffix'])
 
 def b85dec(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'ascii85'):
     pass
