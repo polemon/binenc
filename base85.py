@@ -42,6 +42,8 @@ hlp = """base85.py -- encode / decode data and print to standard output
                             Use 0 to disable line wrapping. (has no effect
                             when used together with '-d')
         -s, --string=STR    use STR instead of reading from STDIN
+        -r, --raw           in case an alphabet uses prefixes and/or
+                            postfixes: don't use them
 
       (alphabet selection)
             --ascii85       use Adobe ascii85 alphabet
@@ -144,8 +146,11 @@ def b85enc_print(fh_out, linlen, wrap, s):
 # encode stream, print to output stream
 # also, honor word wrapping
 # note default values
-def b85enc(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'ascii85', wrap = 76):
-    linlen = b85enc_print(fh_out, len(base85[encoding]['prefix']), wrap, base85[encoding]['prefix'])
+def b85enc(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'ascii85', wrap = 76, raw = False):
+    linlen = 0
+
+    if not raw:
+        linlen = b85enc_print(fh_out, len(base85[encoding]['prefix']), wrap, base85[encoding]['prefix'])
 
     blk = b85enc_getbinblk(fh_in)
     s = b85enc_pad(encoding, blk)
@@ -158,13 +163,17 @@ def b85enc(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'asc
         s = b85enc_pad(encoding, blk)
         linlen += len(s)
 
-    linlen += len(base85[encoding]['suffix']) -1    # the one overhang is an empy bye from EOF
-    b85enc_print(fh_out, linlen, wrap, base85[encoding]['suffix'])
+    if not raw:
+        linlen += len(base85[encoding]['suffix']) -1    # the one overhang is an empy bye from EOF
+        b85enc_print(fh_out, linlen, wrap, base85[encoding]['suffix'])
 
 # handle string from cli as input and print result to output stream
-def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', wrap = 76):
+def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', wrap = 76, raw = False):
     idx = 0
-    linlen = b85enc_print(fh_out, len(base85[encoding]['prefix']), wrap, base85[encoding]['prefix'])
+    linlen = 0
+
+    if not raw:
+        linlen = b85enc_print(fh_out, len(base85[encoding]['prefix']), wrap, base85[encoding]['prefix'])
 
     while idx < len(binstr):
         blk = binstr[idx:idx+4]
@@ -175,13 +184,35 @@ def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', w
 
         idx += 4
     
-    linlen += len(base85[encoding]['suffix'])    # the one overhang is an empy bye from EOF
-    b85enc_print(fh_out, linlen, wrap, base85[encoding]['suffix'])
+    if not raw:
+        linlen += len(base85[encoding]['suffix'])    # the one overhang is an empy bye from EOF
+        b85enc_print(fh_out, linlen, wrap, base85[encoding]['suffix'])
 
-def b85dec(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'ascii85'):
+def b85dec_getblk(fh):
+    s = ""
+    
+    byte = fh.read(1)
+    while byte != b'' and len(s) < 5:
+        c = byte.decode()
+        if not c.isspace():
+            s += c
+
+        byte = fh.read(1)
+
+    return s
+
+def b85dec(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'ascii85', raw = False):
+    e_block = b85dec_getblk(fh_in)
+    b = b85dec_pad(encoding, e_block)
+    while b:
+        pprint.pprint(e_block)
+        fh_out.write(b)
+        fh_out.write(b'\n')
+        e_block = b85dec_getblk(fh_in)
+        b = b85dec_pad(encoding, e_block)
     pass
     
-def b85dec_str(e_binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85'):
+def b85dec_str(e_binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', raw = False):
     pass
 
 def main():
@@ -196,9 +227,10 @@ def main():
     # defaults
     binstr = b''
     decode = False
+    raw = False
 
     try:
-        sw, arg = getopt.getopt(sys.argv, 'hdvw:s:', ['help', 'decode', 'version', 'wrap=', 'string=', 'ascii85', 'z85', 'base85'])
+        sw, arg = getopt.getopt(sys.argv, 'hdrvw:s:', ['help', 'decode', 'raw', 'version', 'wrap=', 'string=', 'ascii85', 'z85', 'base85'])
     except getopt.GetoptError as e:
         print("ERROR:", e)
         exit(1)
@@ -218,8 +250,10 @@ def main():
             encoding = 'base85'
         elif s in ('--z85'):
             encoding = 'z85'
-        elif s in ('-d','--decode'):
+        elif s in ('-d', '--decode'):
             decode = True
+        elif s in ('-r', '--raw'):
+            raw = True
         elif s in ('-v', '--version'):
             print(ver)
             exit(0)
@@ -232,14 +266,14 @@ def main():
 
     if decode:
         if binstr:
-            b85dec_str(e_binstr = binstr, fh_out = fh_out, encoding = encoding)
+            b85dec_str(e_binstr = binstr, fh_out = fh_out, encoding = encoding, raw = raw)
         else:
-            b85dec(fh_in = fh_in, fh_out = fh_out, encoding = encoding)
+            b85dec(fh_in = fh_in, fh_out = fh_out, encoding = encoding, raw = raw)
     else:
         if binstr:
-            b85enc_str(binstr = binstr, fh_out = fh_out, encoding = encoding, wrap = wrap)
+            b85enc_str(binstr = binstr, fh_out = fh_out, encoding = encoding, wrap = wrap, raw = raw)
         else:
-            b85enc(fh_in = fh_in, fh_out = fh_out, encoding = encoding, wrap = wrap)
+            b85enc(fh_in = fh_in, fh_out = fh_out, encoding = encoding, wrap = wrap, raw = raw)
 
     #pprint.pprint(sw)
 
