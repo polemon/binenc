@@ -16,31 +16,37 @@ base85 = {
 
 # globals
 ver = "base85.py v0.01 (c) Szymon 'polemon' Bereziak"
-hlp = """base85 -- encode / decode data and print to standard output
+hlp = """base85.py -- encode / decode data and print to standard output
 
     Usage:  base85 [SWITCHES] [FILE]
 
     FILE:
-        If FILE is '-' or omitted, base85 reads from STDIN
-        otherwise it'll encode the contents of FILE and print to
-        STDOUT
+        If FILE is '-', '- -', or omitted, base85.py reads from STDIN
+        
+        If FILE is '<filename>', or '<filename> -', base85.py will read
+        the contents of FILE and print the result to STDOUT
 
         If FILE are two file names, output will be printed to the
         second file, rather than STDOUT
+        
+        If FILE is '- <filename>', base85.py will read from STDIN and
+        write to the file specified.
+
 
     SWITCHES:
       (general)
         -h, --help          This help
         -d, --decode        decode instead of encode
         -v, --version       print short version information
-        -w, --wrap=COL      wrap at COL number of characters (def. 76).
-                            Use 0 to disable line wrapping.
+        -w, --wrap=COL      wrap at COL number of characters (def. 76)
+                            Use 0 to disable line wrapping. (has no effect
+                            when used together with '-d')
         -s, --string=STR    use STR instead of reading from STDIN
 
       (alphabet selection)
             --ascii85       use Adobe ascii85 alphabet
             --z85           use ZeroMQ alphabet
-            --base85        use RFC 1924 (IPv6 adresses) alphabet (default)
+            --base85        use RFC 1924 (used for IPv6) alphabet (default)
 
     Author:      Szymon 'polemon' Bereziak <polemon@gmail.com>
     License:     ISC
@@ -143,8 +149,39 @@ def b85enc(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'asc
         linlen += len(s)
 
 def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', wrap = 76):
-    pprint.pprint(binstr) 
+    idx = 0
+    #blk = binstr[idx:idx+4]
+    #s = b85enc_pad(encoding, blk)
+    linlen = 0
+
+    while idx < len(binstr):
+        blk = binstr[idx:idx+4]
+        s = b85enc_pad(encoding, blk)
+        linlen += len(s)
+
+        
+        while linlen > wrap and wrap != 0:
+            part = wrap - (linlen -len(s))
+
+            fh_out.write(s[:part].encode())
+            fh_out.write(b'\n')
+            fh_out.flush()
+            #print('|' + str(linlen) + '|' + str(part) + '|')
+
+            s = s[part:]
+            linlen = len(s)
+        
+        fh_out.write(s.encode())
+        fh_out.flush()
+
+        idx += 4
+
+def b85dec(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'ascii85'):
     pass
+    
+def b85dec_str(e_binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85'):
+    pass
+
 
 def main():
     sys.argv.pop(0) # get rid of script name
@@ -156,8 +193,6 @@ def main():
 
     binstr = b''
     decode = False
-
-    #pprint.pprint(sys.argv[0])
 
     try:
         sw, arg = getopt.getopt(sys.argv, 'hdvw:s:', ['help', 'decode', 'version', 'wrap=', 'string=', 'ascii85', 'z85', 'base85'])
@@ -192,11 +227,16 @@ def main():
             print("ERROR: something FUBAR with the switches, I'll show you later...", file = sys.stderr)
             exit(1)
 
-    
-    if binstr:
-        b85enc_str(binstr = binstr, fh_out = fh_out, encoding = encoding, wrap = wrap)
+    if decode:
+        if binstr:
+            b85dec_str(e_binstr = binstr, fh_out = fh_out, encoding = encoding)
+        else:
+            b85dec(fh_in = fh_in, fh_out = fh_out, encoding = encoding)
     else:
-        b85enc(fh_in = fh_in, fh_out = fh_out, encoding = encoding, wrap = wrap)
+        if binstr:
+            b85enc_str(binstr = binstr, fh_out = fh_out, encoding = encoding, wrap = wrap)
+        else:
+            b85enc(fh_in = fh_in, fh_out = fh_out, encoding = encoding, wrap = wrap)
 
     #pprint.pprint(sw)
 
@@ -205,9 +245,6 @@ def main():
     #    pprint.pprint(byte)
     #    byte = sys.stdin.buffer.read(1)
 
-    #b85enc()
-
-
 
 #    pprint.pprint(sys.argv)
 #    pprint.pprint(len(sys.argv[0]))
@@ -215,15 +252,6 @@ def main():
 
 #    pprint.pprint(sys.argv[0].encode()
 #    encoded = b85enc_pad('base85', sys.argv[0].encode())
-
-#    pprint.pprint(encoded)
-
-#    print("re-decoded:")
-#    pprint.pprint(b85dec_pad('base85', encoded))
-
-    #print(hlp)
-    #pprint.pprint(sw)
-    #pprint.pprint(arg)
 
     pass
 
