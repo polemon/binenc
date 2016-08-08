@@ -120,38 +120,52 @@ def b85enc_getbinblk(fh):
     barr += byte
     return bytes(barr)
 
+# wraps lines correctly, and recalculated new line length if necessary
+def b85enc_print(fh_out, linlen, wrap, s):
+    while linlen > wrap and wrap != 0:    # very smart version of an if-then-else ;)
+        part = wrap - (linlen -len(s))
+
+        fh_out.write(s[:part].encode())
+        fh_out.write(b'\n')
+        fh_out.flush()
+
+        s = s[part:]
+        linlen = len(s)
+
+        # word wrapping like this also works with blocks larger than a single line:
+        # line length = 4 and block size = 5
+        # wrap == 0 is no wrapping
+ 
+    fh_out.write(s.encode())
+    fh_out.flush()
+
+    return linlen
+
 # encode stream, print to output stream
 # also, honor word wrapping
 # note default values
 def b85enc(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'ascii85', wrap = 76):
+    linlen = b85enc_print(fh_out, len(base85[encoding]['prefix']), wrap, base85[encoding]['prefix'])
+
     blk = b85enc_getbinblk(fh_in)
     s = b85enc_pad(encoding, blk)
-    linlen = len(s)
+    linlen += len(s)
 
     while len(blk) != 0:    # empty block received at EOF
-        while linlen > wrap and wrap != 0:    # very smart version of an if-then-else ;)
-            part = wrap - (linlen -len(s))
+        linlen = b85enc_print(fh_out, linlen, wrap, s)
 
-            fh_out.write(s[:part].encode())
-            fh_out.write(b'\n')
-
-            s = s[part:]
-            linlen = len(s)
-
-            # word wrapping like this also works with blocks larger than a single line:
-            # line length = 4 and block size = 5
-            # wrap == 0 is no wrapping
- 
-        fh_out.write(s.encode())
-        fh_out.flush()
         blk = b85enc_getbinblk(fh_in)
         s = b85enc_pad(encoding, blk)
         linlen += len(s)
+        fh_out.write(b'|' + str(linlen).encode() + b'|' + str(wrap).encode() + b'|')
 
+    #linlen += len(base85[encoding]['suffix'])
+    fh_out.write(b'|' + str(linlen).encode() + b'|' + str(wrap).encode() + b'|')
+    #b85enc_print(fh_out, linlen, wrap, base85[encoding]['suffix'])
+
+# handle string from cli as input and print result to output stream
 def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', wrap = 76):
     idx = 0
-    #blk = binstr[idx:idx+4]
-    #s = b85enc_pad(encoding, blk)
     linlen = 0
 
     while idx < len(binstr):
@@ -159,20 +173,7 @@ def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', w
         s = b85enc_pad(encoding, blk)
         linlen += len(s)
 
-        
-        while linlen > wrap and wrap != 0:
-            part = wrap - (linlen -len(s))
-
-            fh_out.write(s[:part].encode())
-            fh_out.write(b'\n')
-            fh_out.flush()
-            #print('|' + str(linlen) + '|' + str(part) + '|')
-
-            s = s[part:]
-            linlen = len(s)
-        
-        fh_out.write(s.encode())
-        fh_out.flush()
+        linlen = b85enc_print(fh_out, linlen, wrap, s)
 
         idx += 4
 
@@ -182,15 +183,16 @@ def b85dec(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'asc
 def b85dec_str(e_binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85'):
     pass
 
-
 def main():
     sys.argv.pop(0) # get rid of script name
 
+    # standard values not actually necessary in library use
     fh_in = sys.stdin.buffer
     fh_out = sys.stdout.buffer
     encoding = 'ascii85'
     wrap = 76
 
+    # defaults
     binstr = b''
     decode = False
 
