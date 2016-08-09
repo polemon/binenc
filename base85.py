@@ -80,10 +80,10 @@ def b85enc_block(encoding, block):
 def b85dec_block(encoding, e_block):
     val = 0
 
-    val = val + base85[encoding]['alphabet'].index(e_block[0]) * 85**4
-    val = val + base85[encoding]['alphabet'].index(e_block[1]) * 85**3
-    val = val + base85[encoding]['alphabet'].index(e_block[2]) * 85**2
-    val = val + base85[encoding]['alphabet'].index(e_block[3]) * 85
+    val = val + base85[encoding]['alphabet'].index(e_block[0]) * (85**4)
+    val = val + base85[encoding]['alphabet'].index(e_block[1]) * (85**3)
+    val = val + base85[encoding]['alphabet'].index(e_block[2]) * (85**2)
+    val = val + base85[encoding]['alphabet'].index(e_block[3]) * (85)
     val = val + base85[encoding]['alphabet'].index(e_block[4])
 
     return bytes([(val >> (8 * 3)), (val >> (8 * 2)) & 255, (val >> 8) & 255, val & 255])
@@ -188,14 +188,17 @@ def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', w
         linlen += len(base85[encoding]['suffix'])    # the one overhang is an empy bye from EOF
         b85enc_print(fh_out, linlen, wrap, base85[encoding]['suffix'])
 
+# get chunk (5 characters) of encoded data from input source and disregard whitespace characters
 def b85dec_getblk(fh):
     s = ""
     
     byte = fh.read(1)
-    while byte != b'' and len(s) < 5:
+    while True: # emulating a do-while loop
         c = byte.decode()
         if not c.isspace():
             s += c
+        if byte == b'' or len(s) >= 5:  # while part of the do-while loop
+            break
 
         byte = fh.read(1)
 
@@ -203,14 +206,11 @@ def b85dec_getblk(fh):
 
 def b85dec(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'ascii85', raw = False):
     e_block = b85dec_getblk(fh_in)
-    b = b85dec_pad(encoding, e_block)
-    while b:
-        pprint.pprint(e_block)
-        fh_out.write(b)
-        fh_out.write(b'\n')
-        e_block = b85dec_getblk(fh_in)
+
+    while e_block:
         b = b85dec_pad(encoding, e_block)
-    pass
+        fh_out.write(b)
+        e_block = b85dec_getblk(fh_in)
     
 def b85dec_str(e_binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', raw = False):
     pass
