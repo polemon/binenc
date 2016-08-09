@@ -205,16 +205,38 @@ def b85dec_getblk(fh):
 
     return s
 
+# FIXME no prefix encoding understood!
 def b85dec(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'ascii85', raw = False):
     e_block = b85dec_getblk(fh_in)
 
     while e_block:
         b = b85dec_pad(encoding, e_block)
         fh_out.write(b)
+        fh_out.flush()
         e_block = b85dec_getblk(fh_in)
+
+# FIXME no prefix encoding understood!
+def b85dec_str(e_binstr = '', fh_out = sys.stdout.buffer, encoding = 'ascii85', raw = False):
+    idx = 0
     
-def b85dec_str(e_binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', raw = False):
-    pass
+    if not raw:
+        pass
+
+    while idx < len(e_binstr):
+        e_block = ""
+        
+        while len(e_block) < 5 and idx < len(e_binstr):
+            c = e_binstr[idx]
+            if not c.isspace():
+                e_block += c
+            
+            idx += 1
+
+        b = b85dec_pad(encoding, e_block)
+        fh_out.write(b)
+        fh_out.flush()
+
+    # print(e_binstr)
 
 def main():
     sys.argv.pop(0) # get rid of script name
@@ -267,7 +289,7 @@ def main():
 
     if decode:
         if binstr:
-            b85dec_str(e_binstr = binstr, fh_out = fh_out, encoding = encoding, raw = raw)
+            b85dec_str(e_binstr = binstr.decode(), fh_out = fh_out, encoding = encoding, raw = raw)
         else:
             b85dec(fh_in = fh_in, fh_out = fh_out, encoding = encoding, raw = raw)
     else:
@@ -290,8 +312,6 @@ def main():
 
 #    pprint.pprint(sys.argv[0].encode()
 #    encoded = b85enc_pad('base85', sys.argv[0].encode())
-
-    pass
 
 if __name__ == '__main__':
     main()
