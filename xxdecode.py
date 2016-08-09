@@ -6,5 +6,8 @@ from stat import *
 
 xxdict = "+-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
+def main():
+    exit(0)
+
 if __name__ == "__main__":
-    return 0
+    main()

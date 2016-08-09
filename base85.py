@@ -52,7 +52,7 @@ hlp = """base85.py -- encode / decode data and print to standard output
 
     Author:      Szymon 'polemon' Bereziak <polemon@gmail.com>
     License:     ISC
-    Last change: 2016-07-31
+    Last change: 2016-08-09
 """
 
 # block is always 4 bytes long
@@ -195,7 +195,8 @@ def b85dec_getblk(fh):
     byte = fh.read(1)
     while True: # emulating a do-while loop
         c = byte.decode()
-        if not c.isspace():
+
+        if not c.isspace(): # disregard white space characters (these must be silently ignored)
             s += c
         if byte == b'' or len(s) >= 5:  # while part of the do-while loop
             break

@@ -1,0 +1,39 @@
+.TH BASE85 1 "August 2016" "base85 v0.01" base85
+.SH NAME
+base85.py \- base85 encode/decode data
+.SH SYNOPSIS
+.B base85.py
+.RI [ SWITCH "]... [" FILE ]
+.SH DESCRIPTION
+Convert binary data in FILE to plain ASCII text (or vice versa), writing to
+standard output. With no FILE, or when FILE is \-, read standard input.
+.TP
+.BR \-d ", " \-\-decode
+decode data
+all whitespace characters (such as newlines) are ignored
+.TP
+.BR \-w ", " \-\-wrap =\fICOLS\fR
+wrap encoded lines after COLS characters (default 76);
+use 0 to disable line wrapping
+.TP
+.B \-\-help
+prints out the available program options
+.TP
+.B \-\-version
+output version information and exit
+.PP
+base85.py is a method for encoding binary data into ASCII text.
+.SH AUTHOR
+Written by Szymon 'polemon' Bereziak
+.SH "REPORTING BUGS"
+Report bugs to <polemon@gmail.com>, or through github (see below)
+.SH COPYRIGHT
+Copyright (c) 2016 Szymon 'polemon' Bereziak
+.SH LICENSE
+All code is distributed under ISC license.
+A copy of that license text is available at:
+    https://raw.githubusercontent.com/polemon/binenc/master/LICENSE
+.SH "SEE ALSO"
+base64(1), uuencode(1)
+
+http://github.com/polemon/binenc
