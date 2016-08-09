@@ -10,8 +10,8 @@ base16 = '0123456789ABCDEF'
 def b16enc_block(block):
     e_block = ""
 
-    e_block = e_block + base16[((block[0] & 0xF0) >> 4)]
-    e_block = e_block + base16[(block[0] & 0x0F)]
+    e_block = e_block + base16[ ( (block[0] & 0xF0) >> 4 ) ]
+    e_block = e_block + base16[   (block[0] & 0x0F) ]
 
     return e_block
 

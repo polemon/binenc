@@ -10,6 +10,7 @@
 
 import os
 import sys
+import getopt
 from stat import *
 
 xxdict = "+-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -62,7 +63,7 @@ def help():
     print(halp)
     sys.exit(0)
 
-if __name__ == "__main__":
+def main():
     block = b''
     byte_n = 0
     in_stream = False
@@ -167,3 +168,6 @@ if __name__ == "__main__":
 
     if not out_stream:
         fh_out.close()
+
+if __name__ == '__main__':
+    main()
