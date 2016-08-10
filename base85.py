@@ -35,20 +35,21 @@ hlp = """base85.py -- encode / decode data and print to standard output
 
     SWITCHES:
       (general)
-        -h, --help          This help
-        -d, --decode        decode instead of encode
-        -v, --version       print short version information
-        -w, --wrap=COL      wrap at COL number of characters (def. 76)
-                            Use 0 to disable line wrapping. (has no effect
-                            when used together with '-d')
-        -s, --string=STR    use STR instead of reading from STDIN
-        -r, --raw           in case an alphabet uses prefixes and/or
-                            postfixes: don't use them
+        -h, --help           This help
+        -d, --decode         decode instead of encode
+        -v, --version        print short version information
+        -w, --wrap=COL       wrap at COL number of characters (def. 76)
+                             Use 0 to disable line wrapping. (has no effect
+                             when used together with '-d')
+        -s, --string=STR     use STR instead of reading from STDIN
+        -r, --raw            in case an alphabet uses prefixes and/or
+                             postfixes: don't use them
+        -i, --ignore-garbage when decoding, ignore non-alphabet characters
 
       (alphabet selection)
-            --ascii85       use Adobe ascii85 alphabet
-            --z85           use ZeroMQ alphabet
-            --base85        use RFC 1924 (used for IPv6) alphabet (default)
+            --ascii85        use Adobe ascii85 alphabet
+            --z85            use ZeroMQ alphabet
+            --base85         use RFC 1924 (used for IPv6) alphabet (default)
 
     Author:      Szymon 'polemon' Bereziak <polemon@gmail.com>
     License:     ISC
