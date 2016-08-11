@@ -45,6 +45,8 @@ hlp = """base85.py -- encode / decode data and print to standard output
         -r, --raw            in case an alphabet uses prefixes and/or
                              postfixes: don't use them
         -i, --ignore-garbage when decoding, ignore non-alphabet characters
+                             this switch has no function when encoding
+
 
       (alphabet selection)
             --ascii85        use Adobe ascii85 alphabet
@@ -55,6 +57,13 @@ hlp = """base85.py -- encode / decode data and print to standard output
     License:     ISC
     Last change: 2016-08-09
 """
+
+class PrefixError(Exception):
+    def __init__(self, prefix):
+        self.prefix
+    
+    def __str__(self):
+        return repr(self.prefix)
 
 # block is always 4 bytes long
 def b85enc_block(encoding, block):
@@ -190,9 +199,22 @@ def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', w
         b85enc_print(fh_out, linlen, wrap, base85[encoding]['suffix'])
 
 # get chunk (5 characters) of encoded data from input source and disregard whitespace characters
-def b85dec_getblk(fh):
+# FIXME prefix handling untested!
+def b85dec_getblk(fh, encoding, raw, garbage):
     s = ""
-    
+
+    if not raw: # pool input filehandle till prefix is found
+        for i in base85[encoding]['prefix']:
+            while True:
+                byte = fh.read(1)
+                c = byte.decode()
+                
+                if c == i and not c.isspace():
+                    break
+
+                elif byte == b'':
+                    raise PrefixError
+
     byte = fh.read(1)
     while True: # emulating a do-while loop
         c = byte.decode()
@@ -207,17 +229,17 @@ def b85dec_getblk(fh):
     return s
 
 # FIXME no prefix encoding understood!
-def b85dec(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'ascii85', raw = False):
-    e_block = b85dec_getblk(fh_in)
+def b85dec(fh_in = sys.stdin.buffer, fh_out = sys.stdout.buffer, encoding = 'ascii85', raw = False, garbage = False):
+    e_block = b85dec_getblk(fh_in, encoding, raw, garbage)
 
     while e_block:
         b = b85dec_pad(encoding, e_block)
         fh_out.write(b)
         fh_out.flush()
-        e_block = b85dec_getblk(fh_in)
+        e_block = b85dec_getblk(fh_in, encoding, raw, garbage)
 
 # FIXME no prefix encoding understood!
-def b85dec_str(e_binstr = '', fh_out = sys.stdout.buffer, encoding = 'ascii85', raw = False):
+def b85dec_str(e_binstr = '', fh_out = sys.stdout.buffer, encoding = 'ascii85', raw = False, garbage = False):
     idx = 0
     
     if not raw:
@@ -252,9 +274,10 @@ def main():
     binstr = b''
     decode = False
     raw = False
+    garbage = False
 
     try:
-        sw, arg = getopt.getopt(sys.argv, 'hdrvw:s:', ['help', 'decode', 'raw', 'version', 'wrap=', 'string=', 'ascii85', 'z85', 'base85'])
+        sw, arg = getopt.getopt(sys.argv, 'hdrivw:s:', ['help', 'decode', 'raw', 'ignore-garbage', 'version', 'wrap=', 'string=', 'ascii85', 'z85', 'base85'])
     except getopt.GetoptError as e:
         print("ERROR:", e)
         exit(1)
@@ -278,6 +301,8 @@ def main():
             decode = True
         elif s in ('-r', '--raw'):
             raw = True
+        elif s in ('-i', '--ignore-garbage'):
+            garbage = True
         elif s in ('-v', '--version'):
             print(ver)
             exit(0)
@@ -290,9 +315,9 @@ def main():
 
     if decode:
         if binstr:
-            b85dec_str(e_binstr = binstr.decode(), fh_out = fh_out, encoding = encoding, raw = raw)
+            b85dec_str(e_binstr = binstr.decode(), fh_out = fh_out, encoding = encoding, raw = raw, garbage = garbage)
         else:
-            b85dec(fh_in = fh_in, fh_out = fh_out, encoding = encoding, raw = raw)
+            b85dec(fh_in = fh_in, fh_out = fh_out, encoding = encoding, raw = raw, garbage = garbage)
     else:
         if binstr:
             b85enc_str(binstr = binstr, fh_out = fh_out, encoding = encoding, wrap = wrap, raw = raw)
