@@ -58,10 +58,17 @@ hlp = """base85.py -- encode / decode data and print to standard output
     Last change: 2016-08-09
 """
 
-class PrefixError(Exception):
+class PrefixNotFoundError(Exception):
     def __init__(self, prefix):
-        self.prefix
+        self.prefix = prefix
     
+    def __str__(self):
+        return repr(self.prefix)
+
+class PrefixPartial(Exception):
+    def __init__(self, prefix):
+        self.prefix = prefix
+
     def __str__(self):
         return repr(self.prefix)
 
@@ -211,9 +218,10 @@ def b85dec_getblk(fh, encoding, raw, garbage):
                 
                 if c == i and not c.isspace():
                     break
-
                 elif byte == b'':
                     raise PrefixError
+                elif
+                    raise
 
     byte = fh.read(1)
     while True: # emulating a do-while loop
