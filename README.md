@@ -1,6 +1,10 @@
 # binenc
 Collection of various binary data to text encoders
 
+# Prerequisites
+ * Python3
+ * [ronn](https://github.com/rtomayko/ronn) *(for creating `man` pages)*
+
 ## `base64`-like encoders
 These encoders are designed to be compatible to the feature-set of `base64`, which is a progam available on many UNIXoidal systems. Some expand on the default switch set, but should otherwise be compatible.
 
