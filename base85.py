@@ -207,7 +207,18 @@ def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', w
 
 
 def b85dec_findprefix(fh, encoding):
-        pass
+    for i in base85[encoding]['prefix']:
+        while True:
+            byte = fh.read(1)
+            c = byte.decode()
+            
+            if c == i and not c.isspace():
+                break
+            elif byte == b'':
+                raise PrefixNotFoundError
+            elif
+                raise PrefixCorrupt
+    pass
 
 
 # get chunk (5 characters) of encoded data from input source and disregard whitespace characters
@@ -216,17 +227,12 @@ def b85dec_getblk(fh, encoding, raw, garbage):
     s = ""
 
     if not raw: # spool input filehandle till prefix is found
-        for i in base85[encoding]['prefix']:
-            while True:
-                byte = fh.read(1)
-                c = byte.decode()
-                
-                if c == i and not c.isspace():
-                    break
-                elif byte == b'':
-                    raise PrefixNotFoundError
-                elif
-                    raise PrefixCorrupt
+        try:
+            b85dec_findprefix(fh, encoding)
+        except PrefixNotFoundError:
+            print("ERROR: Prefix not found! (try with -r perhaps?)", file = sys.stderr)
+        except PrefixCorrupt:
+            print("ERRPR: Prefix seems to be partial / corrupt? (try with -r perhaps?)", file = sys.stderr)
 
     byte = fh.read(1)
     while True: # emulating a do-while loop
