@@ -65,7 +65,7 @@ class PrefixNotFoundError(Exception):
     def __str__(self):
         return repr(self.prefix)
 
-class PrefixPartial(Exception):
+class PrefixCorrupt(Exception):
     def __init__(self, prefix):
         self.prefix = prefix
 
@@ -205,12 +205,17 @@ def b85enc_str(binstr = b'', fh_out = sys.stdout.buffer, encoding = 'ascii85', w
         linlen += len(base85[encoding]['suffix'])    # the one overhang is an empy bye from EOF
         b85enc_print(fh_out, linlen, wrap, base85[encoding]['suffix'])
 
+
+def b85dec_findprefix(fh, encoding):
+        pass
+
+
 # get chunk (5 characters) of encoded data from input source and disregard whitespace characters
 # FIXME prefix handling untested!
 def b85dec_getblk(fh, encoding, raw, garbage):
     s = ""
 
-    if not raw: # pool input filehandle till prefix is found
+    if not raw: # spool input filehandle till prefix is found
         for i in base85[encoding]['prefix']:
             while True:
                 byte = fh.read(1)
@@ -219,9 +224,9 @@ def b85dec_getblk(fh, encoding, raw, garbage):
                 if c == i and not c.isspace():
                     break
                 elif byte == b'':
-                    raise PrefixError
+                    raise PrefixNotFoundError
                 elif
-                    raise
+                    raise PrefixCorrupt
 
     byte = fh.read(1)
     while True: # emulating a do-while loop
